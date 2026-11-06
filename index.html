@@ -286,14 +286,6 @@ tbody tr.none td{opacity:.55}
   color:var(--cowork);border:1px solid currentColor;letter-spacing:.05em}
 .foot{font-size:.74rem;color:var(--faint);text-align:center;margin-top:26px;padding-top:18px;
   border-top:1px solid var(--line);line-height:1.75}
-.intro{border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:18px 0 0;
-  background:var(--surface2)}
-.intro p{font-size:.82rem;line-height:1.65;color:var(--muted);margin:0 0 9px}
-.intro p:last-child{margin-bottom:0}
-.intro b{color:var(--ink);font-weight:600}
-.intro .t{color:var(--ink);font-weight:600}
-.intro .t:before{content:'· '}
-.intro .t:first-of-type:before{content:''}
 .hide{display:none!important}
 </style>
 </head>
@@ -323,11 +315,6 @@ tbody tr.none td{opacity:.55}
       <span id="monthPills" style="display:contents"></span>
       <button class="pill" id="modeBtn" onclick="toggleMode()">Dark mode</button>
     </div>
-  </div>
-  <div class="intro">
-    <p><b>What this is.</b> Most organisations bought AI seats in the last year and cannot say what they got for them. The data exists, but it is split across an admin console, a usage API and a set of invoices, and the three do not agree. This puts it in one place and keeps it current without anyone maintaining it.</p>
-    <p><b>What each tab answers.</b> <span class="t">Rankings</span> who is getting the most out of it, scored two different ways. <span class="t">Monthly adoption</span> who used it in a given month, in which department, and how much. <span class="t">Usage detail</span> what people actually do with it: projects, skills, connectors, file types. <span class="t">Cost</span> what it costs and where the money goes.</p>
-    <p><b>How it works.</b> One static page, no framework and no build step. The figures live in a separate encrypted file that the page decrypts in the browser, so the whole thing can sit in a public repository. A scheduled job rolls it forward on the second of each month.</p>
   </div>
   <div class="rule"></div>
   <div class="views">
@@ -470,8 +457,8 @@ function howTo(){
     '<p><b>Pick a period</b> using the buttons at the top. The one marked NOW is the month '+
     'we are currently in, so it is incomplete and its numbers will look low. Only complete '+
     'days are counted.</p>'+
-    '<p><b>All time</b> is the last button, and it works differently on purpose. Access was '+
-    'granted in waves, so people have had it for anything from a few weeks to several months. '+
+    '<p><b>All time</b> is the last button, and it works differently on purpose. Claude was '+
+    'rolled out in waves, so people have had it for anything from a few weeks to five months. '+
     'Adding up six months of totals would rank people by when they were given the tool. So on '+
     'that page every figure is <b>per day of access</b>, counted from the day each person\'s '+
     'account was created. Anyone with fewer than '+
@@ -480,11 +467,8 @@ function howTo(){
     'against someone with five months.</p>'+
     '<p><b>The monthly pages use raw numbers.</b> Within a single month almost everyone had '+
     'the same days, so they already compare fairly.</p>'+
-    '<p><b>The four tabs:</b></p>'+
+    '<p><b>The three tabs:</b></p>'+
     '<ul>'+
-    '<li><b>Rankings</b> — a leaderboard, scored on points (1 per chat message, 4 per Cowork '+
-    'message, 6 per Claude Code session) or on Depth of use, which scores breadth, consistency '+
-    'and what someone has built rather than raw volume.</li>'+
     '<li><b>Monthly adoption</b> — who used Claude in the period you have selected, in which '+
     'department, and how much.</li>'+
     '<li><b>Usage detail</b> — what people are doing with it: projects, skills, connectors, '+
