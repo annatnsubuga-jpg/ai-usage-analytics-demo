@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Ashgrove Press · AI Usage Analytics</title>
+<style>
+@font-face{font-family:"Redaction 35";src:url(fonts/Redaction35.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Monochrome, with a single accent. --amber is the accent variable throughout the
+     stylesheet: change the two --amber lines and the whole dashboard re-tints. */
+  --bg:#FFFFFF; --surface:#FFFFFF; --surface2:#F6F6F6; --panel:#0C0C0C;
+  --ink:#0C0C0C; --muted:rgba(12,12,12,.56); --faint:rgba(12,12,12,.34);
+  --line:rgba(12,12,12,.12); --track:rgba(12,12,12,.07);
+  --amber:#2B6CF6; --link:#2B6CF6;
+  --chat:#0C0C0C; --cowork:#4A4A4A; --code:#8A8A8A; --spend:#BDBDBD;
+  --ok:#2B2B2B; --warn:#8A8A8A; --bad:#C2C2C2;
+  --d-editorial:#0C0C0C; --d-digital:#3A3A3A; --d-marketing:#5E5E5E;
+  --d-production:#868686; --d-design:#ADADAD; --d-rights:#D0D0D0;
+}
+body.dark{
+  --bg:#0A0A0A; --surface:#151515; --surface2:#101010; --panel:#000000;
+  --ink:#FAFAFA; --muted:rgba(250,250,250,.60); --faint:rgba(250,250,250,.38);
+  --line:rgba(250,250,250,.14); --track:rgba(250,250,250,.09);
+  --amber:#5B8CFF; --link:#5B8CFF;
+  --chat:#FAFAFA; --cowork:#C4C4C4; --code:#8C8C8C; --spend:#5A5A5A;
+  --ok:#E8E8E8; --warn:#9A9A9A; --bad:#5F5F5F;
+  --d-editorial:#FAFAFA; --d-digital:#CFCFCF; --d-marketing:#A6A6A6;
+  --d-production:#7D7D7D; --d-design:#585858; --d-rights:#3B3B3B;
+}
+body{background:var(--bg);color:var(--ink);min-height:100vh;padding:26px 26px 40px;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+.page{max-width:1360px;margin:0 auto}
+a{color:var(--link);text-decoration:none}
+
+/* ── password gate ─────────────────────────────────────── */
+.gate{max-width:430px;margin:12vh auto;background:var(--surface);
+  border:1px solid var(--line);border-radius:6px;padding:38px 36px}
+.gate .mark{width:150px;margin-bottom:26px}
+.gate .mark svg{width:100%;height:auto;display:block}
+.gate h2{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-bottom:9px}
+.gate p{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:22px}
+.gate input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:4px;
+  background:var(--surface2);color:var(--ink);font-size:.95rem;outline:none;font-family:inherit}
+.gate input:focus{border-color:var(--link)}
+.gate button{width:100%;margin-top:11px;padding:12px;border:none;border-radius:100px;
+  background:var(--ink);color:var(--surface);font-size:.9rem;font-weight:500;
+  cursor:pointer;font-family:inherit}
+.gate button:disabled{opacity:.5;cursor:default}
+.gate .err{color:var(--bad);font-size:.82rem;margin-top:12px;min-height:1.15em}
+
+/* ── header ────────────────────────────────────────────── */
+.brand{width:172px;margin-bottom:12px}
+.brand svg{width:100%;height:auto;display:block}
+body.dark .brand svg path{fill:var(--ink)}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.head-l{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-size:2.35rem;font-weight:700;letter-spacing:-.03em;line-height:1}
+.org{font-size:.8rem;color:var(--faint);text-transform:uppercase;letter-spacing:.13em}
+.pills{display:flex;gap:7px;flex-wrap:wrap}
+.pill{padding:7px 15px;border-radius:100px;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font-size:.79rem;cursor:pointer;white-space:nowrap;font-family:inherit;
+  transition:background .15s,color .15s}
+.pill:hover{border-color:var(--faint)}
+.pill.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.pill .now{font-size:.6rem;opacity:.7;margin-left:5px;text-transform:uppercase;letter-spacing:.08em}
+
+.rule{border-top:1px solid var(--ink);margin:16px 0 0;opacity:.85}
+.views{display:flex;gap:26px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.view{padding:13px 0;border:none;background:none;font-family:inherit;font-size:.95rem;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.view:hover{color:var(--ink)}
+.view.on{color:var(--ink);font-weight:500;border-bottom-color:var(--amber)}
+
+.wnote{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;
+  border:1px solid var(--line);background:var(--surface);border-radius:100px;
+  padding:7px 17px;font-size:.79rem;color:var(--muted);margin-bottom:18px}
+.wnote b{color:var(--ink);font-weight:500}
+.wnote .sep{color:var(--faint)}
+.wnote .live{display:inline-flex;align-items:center;gap:6px;color:var(--ink);font-weight:500}
+.wnote .live i{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block}
+
+/* ── cards ─────────────────────────────────────────────── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px;margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:19px 21px 21px}
+.card.dark{background:var(--panel);border-color:var(--panel)}
+.card.dark .k-label{color:var(--amber)}
+.card.dark .k-sub{color:rgba(237,241,251,.62)}
+.card.dark .k-num{color:#fff}
+.k-label{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.11em;margin-bottom:11px}
+.k-num{font-family:"Redaction 35",Georgia,serif;font-size:2.15rem;line-height:1;letter-spacing:0}
+.k-num .of{font-size:1rem;color:var(--muted);font-family:inherit}
+.k-sub{font-size:.775rem;color:var(--muted);margin-top:11px;line-height:1.55}
+.k-num.chat{color:var(--chat)}.k-num.cowork{color:var(--cowork)}
+.k-num.code{color:var(--code)}.k-num.spend{color:var(--spend)}
+
+.waffle{display:flex;flex-wrap:wrap;gap:3px;margin-top:12px;max-width:210px}
+.waffle i{width:11px;height:11px;background:var(--amber);display:block}
+.waffle i.off{background:var(--track)}
+
+/* ── panels ────────────────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  padding:19px 21px 21px;margin-bottom:18px}
+.p-title{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.11em;margin-bottom:16px}
+.p-note{font-size:.74rem;color:var(--faint);font-weight:400;text-transform:none;
+  letter-spacing:0;margin-left:9px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+@media(max-width:980px){.g2,.g3{grid-template-columns:1fr}}
+
+.note{background:var(--surface2);border-top:2px solid var(--amber);border-radius:0 0 4px 4px;
+  padding:13px 15px;font-size:.79rem;color:var(--muted);line-height:1.65;margin-top:16px}
+.note b{color:var(--ink);font-weight:500}
+
+/* ── bars ──────────────────────────────────────────────── */
+.bars{display:grid;gap:11px}
+.th-s{font-weight:400;opacity:.65;font-size:.68rem}
+.unranked{color:var(--warn);margin-left:2px;font-weight:600}
+.sel-m{font-weight:500}
+.howto{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 15px;margin-bottom:14px}
+.howto summary{cursor:pointer;font-size:.85rem;font-weight:500;letter-spacing:.01em}
+.howto summary::marker{color:var(--faint)}
+.howto-b{font-size:.85rem;line-height:1.65;color:var(--muted);max-width:82ch;margin-top:9px}
+.howto-b p{margin:0 0 8px}
+.howto-b ul{margin:0 0 8px;padding-left:18px}
+.howto-b li{margin-bottom:4px}
+.howto-b b{color:var(--ink)}
+.note.warnbox{border-left:3px solid var(--warn);padding-left:11px}
+.bar{display:flex;align-items:center;gap:14px}
+.bar.click,.bar-c{cursor:pointer;border-radius:4px;padding:2px 4px;margin:-2px -4px}
+.bar.click:hover,.bar-c:hover{background:var(--surface2)}
+.bar-c .bar-l{width:250px}
+.bar.on{background:var(--surface2);outline:1px solid var(--line)}
+.bar-l{font-size:.82rem;width:172px;flex-shrink:0}
+.bar-t{flex:1;height:7px;background:var(--track);border-radius:100px;overflow:hidden;min-width:50px}
+.bar-f{height:100%;border-radius:100px;transition:width .4s ease}
+.bar-v{font-size:.78rem;color:var(--muted);width:104px;text-align:right;flex-shrink:0;
+  font-variant-numeric:tabular-nums}
+
+/* ── leaderboards ──────────────────────────────────────── */
+.lb{display:grid;gap:1px}
+.lb-row{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.lb-row:last-child{border-bottom:none}
+.lb-i{font-size:.7rem;color:var(--faint);width:13px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.lb-n{flex:1;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-s{font-size:.71rem;color:var(--faint);margin-top:2px}
+.lb-v{font-size:1.05rem;flex-shrink:0;font-family:"Redaction 35",Georgia,serif}
+.lb-u{font-size:.68rem;color:var(--muted);margin-left:5px;font-family:inherit}
+.lb-empty{font-size:.79rem;color:var(--faint);padding:12px 2px}
+.st{width:100%;border-collapse:collapse;font-size:.84rem}
+.st th{text-align:left;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--faint);font-weight:500;padding:0 10px 9px 0;border-bottom:1px solid var(--line)}
+.st th.r,.st td.r{text-align:right}
+.st td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.st tr:last-child td{border-bottom:none}
+.rk{font-family:"Redaction 35",Georgia,serif;font-size:1.15rem;width:30px;color:var(--faint)}
+.rk.top{color:var(--amber)}
+.sc{font-family:"Redaction 35",Georgia,serif;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.gap{font-size:.68rem;color:var(--faint);white-space:nowrap}
+.mix{display:flex;height:7px;border-radius:4px;overflow:hidden;min-width:110px;background:var(--track)}
+.mix i{display:block;height:100%}
+.pod{display:grid;gap:8px;margin-bottom:0}
+.pod .p{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.10);border-radius:9px;padding:13px 16px;position:relative}
+.pod .p .mdl{font-family:"Redaction 35",Georgia,serif;font-size:1.15rem;width:22px;flex-shrink:0;
+  color:rgba(255,255,255,.4);text-align:center}
+.pod .p .idy{flex:1;min-width:0}
+.pod .p .who{font-size:.95rem;font-weight:600;letter-spacing:-.01em;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod .p .rol{font-size:.72rem;opacity:.55;margin:1px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod .p .val{font-family:"Redaction 35",Georgia,serif;font-size:1.5rem;line-height:1;flex-shrink:0}
+.pod .p.first{background:rgba(255,180,5,.13);border-color:rgba(255,180,5,.42)}
+.pod .p.first .mdl,.pod .p.first .val{color:var(--amber)}
+.pod .p.first .who{color:#fff}
+.funnote{font-size:.8rem;color:var(--muted);line-height:1.6;max-width:70ch;margin:-4px 0 16px}
+.mv{font-size:.7rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mv.up{color:var(--ok)} .mv.down{color:var(--bad)}
+.mv.flat,.mv.new{color:var(--faint)}
+.rk-bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:16px 0;position:relative}
+.seg{display:inline-flex;background:rgba(255,255,255,.09);border-radius:100px;padding:3px}
+.seg button{border:none;background:none;color:rgba(255,255,255,.62);font:inherit;font-size:.78rem;
+  padding:6px 13px;border-radius:100px;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+.seg button:hover{color:#fff}
+.seg button.on{background:#fff;color:#16181c;font-weight:600}
+.step{display:inline-flex;align-items:center;background:rgba(255,255,255,.09);border-radius:100px;padding:3px}
+.step button{border:none;background:none;color:rgba(255,255,255,.75);font:inherit;font-size:.95rem;
+  width:28px;height:28px;border-radius:100px;cursor:pointer;line-height:1;transition:background .15s}
+.step button:hover:not(:disabled){background:rgba(255,255,255,.16);color:#fff}
+.step button:disabled{opacity:.25;cursor:default}
+.rk-sel{appearance:none;border:none;border-radius:100px;background:#fff;color:#16181c;
+  font:inherit;font-size:.78rem;font-weight:600;padding:7px 30px 7px 14px;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0h10L5 6z' fill='%2316181c'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center}
+.step .rk-sel{background-color:transparent;color:#fff;padding:6px 28px 6px 12px;min-width:124px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0h10L5 6z' fill='white'/></svg>")}
+.step .rk-sel option{color:#16181c}
+.rank-hero{background:var(--panel);border-radius:12px;padding:20px 22px 22px;margin:0 0 16px;
+  color:#fff;position:relative;overflow:hidden}
+.rank-hero:before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 140% at 88% -20%,rgba(255,255,255,.10),transparent 60%)}
+.rank-hero .eyebrow{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.45);margin-bottom:6px}
+.rank-hero h3{font-size:1.35rem;font-weight:700;letter-spacing:-.025em;margin:0 0 3px;color:#fff}
+.rank-hero .sub{font-size:.8rem;color:rgba(255,255,255,.55);margin-bottom:0}
+.rank-hero .pod{position:relative}
+.rank-hero .funnote{color:rgba(255,255,255,.44);margin:12px 0 0;max-width:76ch;font-size:.76rem}
+.scoring{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:14px 0 0;
+  font-size:.73rem;color:rgba(255,255,255,.72)}
+.scoring b{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.42);font-weight:500;margin-right:2px}
+.scoring span{background:rgba(255,255,255,.08);border-radius:100px;padding:4px 10px;white-space:nowrap}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.pod .p{animation:rise .3s cubic-bezier(.2,.7,.3,1) both}
+.pod .p:nth-child(2){animation-delay:.05s}
+.pod .p:nth-child(3){animation-delay:.1s}
+.mix i{transform-origin:left center;animation:grow .42s cubic-bezier(.2,.7,.3,1) both}
+.st tbody tr{animation:fadein .22s ease both}
+.st tbody tr:nth-child(1){animation-delay:.02s} .st tbody tr:nth-child(2){animation-delay:.04s}
+.st tbody tr:nth-child(3){animation-delay:.06s} .st tbody tr:nth-child(4){animation-delay:.08s}
+.st tbody tr:nth-child(5){animation-delay:.10s} .st tbody tr:nth-child(6){animation-delay:.12s}
+.st tbody tr:nth-child(7){animation-delay:.14s} .st tbody tr:nth-child(n+8){animation-delay:.16s}
+.mv{display:inline-block;animation:pop .3s cubic-bezier(.2,.8,.3,1.4) both;animation-delay:.2s}
+@media(max-width:700px){.rk-bar{gap:7px}.seg button{padding:6px 10px;font-size:.74rem}}
+@media (prefers-reduced-motion: reduce){
+  .pod .p,.mix i,.st tbody tr,.mv{animation:none!important}
+}
+
+/* ── controls + table ──────────────────────────────────── */
+.ctrls{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.ctrl-l{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.11em}
+input.q,select.sel{background:var(--surface);border:1px solid var(--line);border-radius:4px;
+  padding:9px 12px;color:var(--ink);font-size:.83rem;outline:none;font-family:inherit}
+input.q{width:250px}
+input.q::placeholder{color:var(--faint)}
+input.q:focus,select.sel:focus{border-color:var(--link)}
+.csv{padding:9px 19px;border:none;border-radius:100px;background:var(--amber);color:#3d2a00;
+  font-size:.81rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.csv:hover{filter:brightness(.96)}
+.cnt{font-size:.77rem;color:var(--faint);margin-left:auto;font-variant-numeric:tabular-nums}
+.key{display:flex;gap:14px;flex-wrap:wrap}
+.key-i{display:flex;align-items:center;gap:6px;font-size:.73rem;color:var(--muted)}
+.sq{width:9px;height:9px;flex-shrink:0}
+.sq-a{background:var(--ok)}.sq-m{background:var(--warn)}.sq-n{background:var(--bad)}
+
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{text-align:left;padding:0 12px 11px;color:var(--muted);font-size:.68rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.11em;border-bottom:1px solid var(--ink);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover td{background:var(--surface2)}
+tbody tr.none td{opacity:.55}
+.nm{display:flex;align-items:center;gap:11px}
+.nm-d{width:8px;height:8px;flex-shrink:0}
+.nm-t{font-weight:500;line-height:1.3}
+.nm-s{font-size:.73rem;color:var(--muted);margin-top:2px;line-height:1.35}
+.chip{display:inline-block;padding:3px 10px;border-radius:3px;font-size:.65rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;
+  border:1px solid currentColor;background:transparent}
+.n{text-align:right;font-variant-numeric:tabular-nums}
+.n.chat{color:var(--chat)}.n.cowork{color:var(--cowork)}
+.n.code{color:var(--code)}.n.spend{color:var(--spend)}
+.n.z{color:var(--faint)}
+.days{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.nodata{text-align:center;padding:38px;color:var(--faint);font-size:.87rem}
+
+.stack{display:flex;height:26px;gap:2px;border-radius:3px;overflow:hidden}
+.stack i{display:block;transition:opacity .15s}
+.stack i:hover{opacity:.75}
+.slegend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+.slegend span{display:flex;align-items:center;gap:7px;font-size:.75rem;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend{display:flex;gap:18px;flex-wrap:wrap}
+.legend-i{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted);
+  cursor:pointer;user-select:none}
+.legend-i.off{opacity:.32}
+.legend-i i{width:16px;height:2px;display:block;flex-shrink:0}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:.63rem;font-weight:500;
+  color:var(--cowork);border:1px solid currentColor;letter-spacing:.05em}
+.foot{font-size:.74rem;color:var(--faint);text-align:center;margin-top:26px;padding-top:18px;
+  border-top:1px solid var(--line);line-height:1.75}
+.intro{border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:18px 0 0;
+  background:var(--surface2)}
+.intro p{font-size:.82rem;line-height:1.65;color:var(--muted);margin:0 0 9px}
+.intro p:last-child{margin-bottom:0}
+.intro b{color:var(--ink);font-weight:600}
+.intro .t{color:var(--ink);font-weight:600}
+.intro .t:before{content:'· '}
+.intro .t:first-of-type:before{content:''}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <div class="mark"><svg viewBox="0 0 178 26" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><path d="M5 20 11.4 6h3.4L21.2 20h-3.9l-1.1-2.7h-6.3L8.8 20H5Zm6-5.6h4.1L13.1 9.3 11 14.4Z"/><rect x="24" y="6" width="3.4" height="14" rx="1" opacity=".45"/><text x="34" y="19" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14.5" font-weight="700" letter-spacing="-.3">Ashgrove Press</text></g></svg></div>
+  <h2>AI Usage Analytics</h2>
+  <p><strong>Public demo. Fabricated data, for demonstration purposes only.</strong>
+     Every person, department, project and figure is invented, as is Ashgrove Press itself, and any
+     resemblance to a real organisation or person is coincidental. It exists to show how the
+     dashboard is built and what it answers.</p>
+  <p>The data file is encrypted at rest and decrypted in your browser, as it is in the real build.
+     Here the key is published alongside it, because there is nothing to protect.</p>
+  <button id="go">Enter the dashboard</button>
+  <div class="err" id="err"></div>
+</div>
+
+<div class="page hide" id="page">
+  <div class="brand"><svg viewBox="0 0 178 26" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><path d="M5 20 11.4 6h3.4L21.2 20h-3.9l-1.1-2.7h-6.3L8.8 20H5Zm6-5.6h4.1L13.1 9.3 11 14.4Z"/><rect x="24" y="6" width="3.4" height="14" rx="1" opacity=".45"/><text x="34" y="19" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14.5" font-weight="700" letter-spacing="-.3">Ashgrove Press</text></g></svg></div>
+  <div class="head">
+    <div class="head-l">
+      <h1>AI Usage Analytics</h1>
+      <div class="org" id="org"></div>
+    </div>
+    <div class="pills">
+      <span id="monthPills" style="display:contents"></span>
+      <button class="pill" id="modeBtn" onclick="toggleMode()">Dark mode</button>
+    </div>
+  </div>
+  <div class="intro">
+    <p><b>What this is.</b> Most organisations bought AI seats in the last year and cannot say what they got for them. The data exists, but it is split across an admin console, a usage API and a set of invoices, and the three do not agree. This puts it in one place and keeps it current without anyone maintaining it.</p>
+    <p><b>What each tab answers.</b> <span class="t">Rankings</span> who is getting the most out of it, scored two different ways. <span class="t">Monthly adoption</span> who used it in a given month, in which department, and how much. <span class="t">Usage detail</span> what people actually do with it: projects, skills, connectors, file types. <span class="t">Cost</span> what it costs and where the money goes.</p>
+    <p><b>How it works.</b> One static page, no framework and no build step. The figures live in a separate encrypted file that the page decrypts in the browser, so the whole thing can sit in a public repository. A scheduled job rolls it forward on the second of each month.</p>
+  </div>
+  <div class="rule"></div>
+  <div class="views">
+    <button class="view on" id="v-standings" onclick="setView('standings')">Rankings</button>
+    <button class="view" id="v-monthly" onclick="setView('monthly')">Monthly adoption</button>
+    <button class="view" id="v-usage" onclick="setView('usage')">Usage detail</button>
+    <button class="view" id="v-cost" onclick="setView('cost')">Cost</button>
+  </div>
+  <div id="app"></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ═══ decryption gate ═══════════════════════════════════ */
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function unlock(pw){
+  const res = await fetch('data.enc?v=' + Date.now());
+  if(!res.ok) throw new Error('Could not load the data file (HTTP ' + res.status + ')');
+  const p = await res.json();
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:b64(p.salt), iterations:p.iterations, hash:'SHA-256'},
+    km, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  let plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(p.iv)}, key, b64(p.ct));
+  if(p.gz){                       // payload is gzipped JSON, inflate it
+    const ds=new DecompressionStream('gzip');
+    const w=ds.writable.getWriter(); w.write(new Uint8Array(plain)); w.close();
+    plain=await new Response(ds.readable).arrayBuffer();
+  }
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+const DEMO_KEY = 'demo';   // published deliberately: the data behind it is invented
+const gate=document.getElementById('gate'),
+      goEl=document.getElementById('go'), errEl=document.getElementById('err');
+async function attempt(){
+  goEl.disabled=true; goEl.textContent='Opening…'; errEl.textContent='';
+  try{
+    DATA = await unlock(DEMO_KEY);
+    gate.classList.add('hide');
+    document.getElementById('page').classList.remove('hide');
+    boot();
+  }catch(e){
+    errEl.textContent = 'Could not open: ' + e.message;
+    goEl.disabled=false; goEl.textContent='Enter the dashboard';
+  }
+}
+goEl.addEventListener('click', attempt);
+addEventListener('keydown', e => { if(e.key==='Enter' && !gate.classList.contains('hide')) attempt(); });
+goEl.focus();
+
+/* ═══ state ═════════════════════════════════════════════ */
+let DATA=null, MONTHS=[], currentMonth=null, view='standings';
+let deptFilter='all', bandFilter=null, sortKey='name', term='', hidden={}, helpOpen=false;
+
+// Departments are whatever the dataset calls them, so the palette is assigned in the order
+// they appear rather than keyed to particular names.
+const DPAL=['var(--d-editorial)','var(--d-digital)','var(--d-marketing)',
+            'var(--d-production)','var(--d-design)','var(--d-rights)'];
+let DCOL={};
+function buildDeptColours(){
+  DCOL={};
+  Object.keys(DATA.allTime.deptCount||{}).forEach((d,i)=>{ DCOL[d]=DPAL[i%DPAL.length]; });
+}
+const CAT=['var(--amber)','#1F1F1F','#3D3D3D','#5C5C5C','#7A7A7A','#999999','#B8B8B8','#D6D6D6'];
+
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>n==null?'—':Number(n).toLocaleString('en-GB');
+const money=n=>'$'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0=n=>'$'+Math.round(Number(n)).toLocaleString('en-GB');
+const pc=n=>Math.round(n*100)+'%';
+const nameOf=e=>(e||'').split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const MONL={Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',
+  Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December'};
+function niceDate(iso){ if(!iso) return 'unknown';
+  const [y,m,d]=iso.split('-').map(Number);
+  return d+' '+Object.values(MONL)[m-1]+' '+y; }
+function statusOf(m,days){
+  if(!m.daysActive) return {k:'none',label:'No usage',c:'var(--bad)'};
+  if(m.daysActive/days>=0.4) return {k:'active',label:'Active',c:'var(--ok)'};
+  return {k:'min',label:'Minimal',c:'var(--warn)'};
+}
+
+const ALLTIME='All time';
+function isAll(){ return currentMonth===ALLTIME; }
+function boot(){
+  MONTHS=Object.keys(DATA.months);
+  currentMonth=MONTHS[MONTHS.length-1];
+  document.getElementById('org').textContent =
+    DATA.meta.org+' · '+DATA.meta.seatsPurchased+' seats · '+
+    DATA.meta.seatsInUse+' in use · '+DATA.meta.seatsUnused+' unused · updated monthly';
+  buildDeptColours();
+  paintPills(); setView(view);
+}
+function paintPills(){
+  document.getElementById('monthPills').innerHTML = MONTHS.map((m,i)=>
+    '<button class="pill'+(m===currentMonth?' on':'')+'" onclick="setMonth(\''+m+'\')">'+esc(m)+
+    (i===MONTHS.length-1?'<span class="now">now</span>':'')+'</button>').join('')+'<button class="pill'+(isAll()?' on':'')+'" onclick="setMonth(\''+ALLTIME+'\')" title="Every month together, adjusted for how long each person has had Claude">All time</button>';
+}
+function longMonth(m){ const p=m.split(' '); return (MONL[p[0]]||p[0])+' '+p[1]; }
+function setMonth(m){
+  // Filters and scroll position always survive a month change, from either control.
+  // Switching month nearly always means "same slice of people, different month".
+  currentMonth=m;
+  const y=window.scrollY;
+  paintPills(); render();
+  window.scrollTo(0,y);
+}
+function setView(v){
+  view=v;
+  ['standings','monthly','usage','cost'].forEach(k=>document.getElementById('v-'+k).classList.toggle('on',k===v));
+  document.getElementById('monthPills').style.display = v==='monthly'?'contents':'none';
+  render();
+}
+function toggleMode(){
+  document.body.classList.toggle('dark');
+  document.getElementById('modeBtn').textContent =
+    document.body.classList.contains('dark')?'Light mode':'Dark mode';
+  render();
+}
+
+function render(){
+  if(!DATA) return;
+  document.getElementById('app').innerHTML =
+    view==='standings'?vStandings(): view==='monthly'?vMonthly(): view==='usage'?vUsage(): vCost();
+  if(view==='monthly') paintRows();
+  document.getElementById('foot').innerHTML =
+    '<b>Fabricated data, for demonstration purposes only.</b> Any resemblance to a real '+
+    'organisation or person is coincidental. Built to demonstrate the work, not to report on anyone.<br>'+
+    'Monthly figures: '+esc(DATA.meta.monthlySource)+'.<br>'+
+    'Usage detail and cost: '+esc(DATA.snapshot.source)+', fetched '+
+    esc(niceDate(DATA.snapshot.fetchedAt.slice(0,10)))+'.';
+}
+
+function howTo(){
+  return '<details class="howto"'+(helpOpen?' open':'')+' ontoggle="helpOpen=this.open">'+
+    '<summary>How to use this dashboard</summary>'+
+    '<div class="howto-b">'+
+    '<p><b>It is updated once a month</b> and the web address never changes, so you can '+
+    'bookmark it and come back. Each refresh adds the month that has just finished.</p>'+
+    '<p><b>Pick a period</b> using the buttons at the top. The one marked NOW is the month '+
+    'we are currently in, so it is incomplete and its numbers will look low. Only complete '+
+    'days are counted.</p>'+
+    '<p><b>All time</b> is the last button, and it works differently on purpose. Access was '+
+    'granted in waves, so people have had it for anything from a few weeks to several months. '+
+    'Adding up six months of totals would rank people by when they were given the tool. So on '+
+    'that page every figure is <b>per day of access</b>, counted from the day each person\'s '+
+    'account was created. Anyone with fewer than '+
+    ((DATA.allTime&&DATA.allTime.minDaysToRank)||30)+' days of access is shown but not ranked, '+
+    'and carries an asterisk, because a couple of weeks is too small a sample to compare '+
+    'against someone with five months.</p>'+
+    '<p><b>The monthly pages use raw numbers.</b> Within a single month almost everyone had '+
+    'the same days, so they already compare fairly.</p>'+
+    '<p><b>The four tabs:</b></p>'+
+    '<ul>'+
+    '<li><b>Rankings</b> — a leaderboard, scored on points (1 per chat message, 4 per Cowork '+
+    'message, 6 per Claude Code session) or on Depth of use, which scores breadth, consistency '+
+    'and what someone has built rather than raw volume.</li>'+
+    '<li><b>Monthly adoption</b> — who used Claude in the period you have selected, in which '+
+    'department, and how much.</li>'+
+    '<li><b>Usage detail</b> — what people are doing with it: projects, skills, connectors, '+
+    'file types, Claude Code. This one always covers the last 30 days rather than a calendar '+
+    'month, because that is the only window Claude reports it over.</li>'+
+    '<li><b>Cost</b> — what Claude costs and where the money goes.</li>'+
+    '</ul>'+
+    '<p><b>Things you can click:</b> a department bar, or one of the Active / Minimal / No '+
+    'usage bands, filters the table of people underneath it. Click it again to clear. You can '+
+    'also search the table, sort it, switch period from the row above it, and download what '+
+    'you are looking at with the Download CSV button.</p>'+
+    '<p><b>Dark mode</b> is the button at the top right.</p>'+
+    '</div></details>';
+}
+
+function windowNote(){
+  const s=DATA.snapshot;
+  if(view==='monthly'){
+    const md=DATA.months[currentMonth], p=md.period.replace(/\s*\(partial\)\s*/i,'');
+    const live=currentMonth===MONTHS[MONTHS.length-1];
+    const mn=currentMonth.split(' ');
+    return '<div class="wnote"><b>'+esc((MONL[mn[0]]||mn[0])+' '+mn[1])+'</b>'+
+      '<span class="sep">·</span>'+esc(p)+'<span class="sep">·</span>'+md.days+' days counted'+
+      (live?'<span class="sep">·</span><span class="live"><i></i>Month in progress, '+
+        'complete days only</span>':'')+
+      '<span class="sep">·</span>Data accurate to <b>'+esc(niceDate(s.dataAsOf))+'</b></div>';
+  }
+  return '<div class="wnote">'+esc(view==='cost'?'Month to date · 1 – 10 August 2026 · USD':s.window)+
+    '<span class="sep">·</span>Data accurate to <b>'+esc(niceDate(s.dataAsOf))+'</b></div>';
+}
+
+function card(label,val,sub,cls,extra){
+  return '<div class="card'+(cls==='dark'?' dark':'')+'"><div class="k-label">'+esc(label)+'</div>'+
+    '<div class="k-num '+(cls&&cls!=='dark'?cls:'')+'">'+val+'</div>'+
+    (extra||'')+(sub?'<div class="k-sub">'+esc(sub)+'</div>':'')+'</div>';
+}
+
+/* ═══ VIEW 0 · RANKINGS ═════════════════════════════════ */
+const W = {chat:1, cowork:4, code:6};
+const METRICS = [
+  ['all',    'All products', null],
+  ['chat',   'Chat',         'messages'],
+  ['cowork', 'Cowork',       'coworkMessages'],
+  ['code',   'Claude Code',  'codeSessions'],
+  ['spend',  'Spend',        'spend'],
+  ['depth',  'Depth of use', null],
+];
+/* Depth of use is scored across five categories rather than one number, because
+   no single count describes how deeply someone has taken Claude on.
+
+     Volume       weighted activity, chat 1 / Cowork 4 / Code 6
+     Breadth      how many of the five surfaces they touch at all
+     Consistency  share of the period they were active
+     Output       pull requests, artifacts and file edits
+     Building     projects created, so set up for reuse rather than asked one-offs
+
+   Each is scored out of 100 against the best performer in that category, then
+   averaged. Leading a category gives you 100 for it. Five equal fifths, no
+   hidden weighting. Spend is deliberately not one of them: it is ranked on its
+   own tab, because costing more is not the same as using it more deeply. */
+const DEPTH_CATS = [
+  ['Volume',      m => (m.messages||0) + (m.coworkMessages||0)*4 + (m.codeSessions||0)*6],
+  ['Breadth',     m => ['messages','coworkMessages','codeSessions','projectsCreated','prs']
+                        .reduce((n,f)=>n+((m[f]||0)>0?1:0),0)],
+  ['Consistency', m => m._pct||0],
+  ['Output',      m => (m.prs||0) + (m.artifacts||0) + (m.fileEdits||0)],
+  ['Building',    m => m.projectsCreated||0],
+];
+/* the monthly records carry prs, artifacts, fileEdits and projectsCreated;
+   the all-time roster does not, so all-time is the sum of the months */
+let _rollup = null;
+function rolledUp(){
+  if(_rollup) return _rollup;
+  _rollup = {};
+  const F = ['messages','coworkMessages','codeSessions','prs','artifacts',
+             'fileEdits','projectsCreated','daysActive','spend'];
+  let totalDays = 0;
+  MONTHS.forEach(k=>{
+    const md = DATA.months[k]; if(!md) return;
+    totalDays += md.days||0;
+    md.members.forEach(m=>{
+      const a = _rollup[m.email] || (_rollup[m.email] =
+        Object.assign({}, m, Object.fromEntries(F.map(f=>[f,0]))));
+      F.forEach(f=> a[f] += (m[f]||0));
+    });
+  });
+  Object.values(_rollup).forEach(a=>{ a._pct = totalDays ? a.daysActive/totalDays : 0; });
+  return _rollup;
+}
+function depthBreakdown(pool){
+  /* pool is the set being compared; best in each category scores 100 */
+  const best = DEPTH_CATS.map(([,fn]) => Math.max(1e-9, ...pool.map(fn)));
+  return m => {
+    const parts = DEPTH_CATS.map(([name,fn],i)=>({name, pct: Math.min(100, fn(m)/best[i]*100)}));
+    return {parts, score: parts.reduce((a,p)=>a+p.pct,0)/parts.length};
+  };
+}
+const gbp=n=>'£'+Number(n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+let rankMetric='all', rankTeam='all';
+
+/* Leavers are excluded from the rankings only. They stay in every other view,
+   because the raw figures for a month they worked are still true.
+   The list lives in the DATA, as meta.leavers {name: lastWorkingDay}, so that a
+   public build simply has none. Never hardcode real names in this file: it is
+   shared with the public demo. Source for the real build is the Leavers database
+   in Notion, IT @ TZ. That database is known to hold at least one stale row for
+   someone who has not left, so check each entry against the current roster
+   before adding it. */
+function hasLeft(name){
+  const d = (DATA && DATA.meta && DATA.meta.leavers || {})[name];
+  return !!d && new Date(d+'T23:59:59') < new Date();
+}
+function setRankMetric(v){ rankMetric=v; const y=window.scrollY; render(); window.scrollTo(0,y); }
+function setRankTeam(v){ rankTeam=v; const y=window.scrollY; render(); window.scrollTo(0,y); }
+function rankPeriods(){ return MONTHS.concat([ALLTIME]); }
+function stepMonth(d){
+  const ps=rankPeriods(), i=ps.indexOf(isAll()?ALLTIME:currentMonth)+d;
+  if(i<0||i>=ps.length) return;
+  setMonth(ps[i]);
+}
+
+function scoreOf(m, metric, span){
+  const k = (metric||rankMetric);
+  if(k==='depth')  return m._depth||0;
+  if(k==='spend')  return m.spend!=null ? m.spend : spendAllTime(m.email);
+  if(k==='chat')   return m.messages||0;
+  if(k==='cowork') return m.coworkMessages||0;
+  if(k==='code')   return m.codeSessions||0;
+  return (m.messages||0)*W.chat + (m.coworkMessages||0)*W.cowork + (m.codeSessions||0)*W.code;
+}
+function unitLabel(){
+  return rankMetric==='chat'?'messages': rankMetric==='cowork'?'messages':
+         rankMetric==='code'?'sessions': rankMetric==='spend'?'spend':
+         rankMetric==='depth'?'depth':'points';
+}
+const showVal=v=>rankMetric==='spend'?gbp(v):rankMetric==='depth'?Number(v).toFixed(1):fmt(v);
+function mixBar(m){
+  const a=(m.messages||0)*W.chat, b=(m.coworkMessages||0)*W.cowork, c=(m.codeSessions||0)*W.code;
+  const t=a+b+c||1, p=n=>(n/t*100).toFixed(1)+'%';
+  return '<div class="mix" title="chat '+p(a)+' · cowork '+p(b)+' · code '+p(c)+'">'+
+    '<i style="width:'+p(a)+';background:var(--chat)"></i>'+
+    '<i style="width:'+p(b)+';background:var(--cowork)"></i>'+
+    '<i style="width:'+p(c)+';background:var(--code)"></i></div>';
+}
+
+function ranksFor(monthKey){
+  /* rank map for one month, under the filters currently applied */
+  const md = DATA.months[monthKey]; if(!md) return null;
+  const r = md.members.filter(m=>(m.daysActive||0)>0 && !hasLeft(m.name))
+    .filter(m=>rankTeam==='all'||(m.dept||'Unassigned')===rankTeam)
+    .map(m=>({email:m.email, score:scoreOf(m, null, md.days||1)}))
+    .sort((a,b)=>b.score-a.score);
+  const out={}; r.forEach((m,i)=>out[m.email]=i+1); return out;
+}
+function movement(prev, email, rank){
+  if(!prev) return '';
+  const was = prev[email];
+  if(was==null) return '<span class="mv new">new</span>';
+  const d = was - rank;
+  if(d===0)  return '<span class="mv flat">&ndash;</span>';
+  return '<span class="mv '+(d>0?'up':'down')+'">'+(d>0?'\u25b2':'\u25bc')+Math.abs(d)+'</span>';
+}
+
+function vStandings(){
+  const allTime = isAll();
+  const md = allTime ? null : DATA.months[currentMonth];
+  if(!allTime && !md) return '<div class="nodata">No data for this month.</div>';
+  const src  = allTime ? DATA.allTime.members : md.members;
+  const span = allTime ? null : (md.days||1);
+  const label= allTime ? DATA.allTime.period : longMonth(currentMonth);
+
+  const active = src.filter(m=>(m.daysActive||0)>0 && !hasLeft(m.name));
+  const goneCount = src.filter(m=>(m.daysActive||0)>0 && hasLeft(m.name)).length;
+  const allTeams = Array.from(new Set(active.map(m=>m.dept||'Unassigned'))).sort();
+  if(rankTeam!=='all' && allTeams.indexOf(rankTeam)===-1) rankTeam='all';
+
+  let pool = active.map(m=>Object.assign({}, m,
+      allTime ? (rolledUp()[m.email]||{}) : {},
+      {_pct: allTime ? (rolledUp()[m.email]||{})._pct||0 : (m.daysActive||0)/span}));
+  if(rankMetric==='depth'){
+    const calc = depthBreakdown(pool);
+    pool.forEach(m=>{ const r = calc(m); m._depth = r.score; m._parts = r.parts; });
+  }
+  const shaped = pool.map(m=>Object.assign({}, m, {
+      score: scoreOf(m, null, span),
+      pct: Math.min(100, allTime ? (m.pctDaysUsed||0) : (m.daysActive||0)/span*100)
+    }));
+  const people = shaped.filter(m=>rankTeam==='all'||(m.dept||'Unassigned')===rankTeam)
+                       .sort((x,y)=>y.score-x.score);
+
+  let h='';
+
+  if(!people.length) return h+'<div class="nodata">Nobody was active here in this period.</div>';
+
+  const curIdx0 = isAll() ? MONTHS.length-1 : MONTHS.indexOf(currentMonth);
+  const prevLabel = curIdx0>0 ? longMonth(MONTHS[curIdx0-1]) : null;
+
+  /* ── podium ────────────────────────────────────────── */
+  const isSpend = rankMetric==='spend';
+  const pod=people.slice(0,3);
+  h+='<div class="rank-hero"><div class="eyebrow">Rankings</div>'+
+    '<h3>'+esc(allTime?'All time':label)+'</h3>'+
+    '<div class="sub">'+(allTime?esc(DATA.allTime.period.replace(/\u2013|-/g,'to'))+' · ':'')+
+    people.length+' people'+
+    (goneCount?' · '+goneCount+(goneCount===1?' leaver':' leavers')+' excluded':'')+
+    (prevLabel&&!allTime?' · movement against '+esc(prevLabel):'')+'</div>'+
+    controlBar(allTeams)+
+    (isSpend ? '' : '<div class="pod">'+pod.map((m,i)=>
+      '<div class="p'+(i===0?' first':'')+'">'+
+      '<div class="mdl">'+(i+1)+'</div>'+
+      '<div class="idy"><div class="who">'+esc(m.name)+'</div>'+
+      '<div class="rol">'+esc(m.title||'')+' · '+esc(m.dept||'')+'</div></div>'+
+      '<div class="val">'+showVal(m.score)+'</div></div>').join('')+'</div>')+
+    (rankMetric==='all'
+      ? '<div class="scoring"><b>Points</b><span>1 per chat message</span><span>4 per Cowork message</span>'+
+        '<span>6 per Claude Code session</span></div>'
+      : rankMetric==='depth'
+      ? '<div class="scoring"><b>Depth of use</b>'+
+        DEPTH_CATS.map(c=>'<span>'+esc(c[0])+'</span>').join('')+
+        '<span>each scored out of 100, then averaged</span></div>'
+      : isSpend
+      ? '<div class="scoring"><b>Showing</b><span>Metered usage above plan limits</span>'+
+        '<span>'+people.length+' of '+DATA.meta.people+' people have any</span>'+
+        '<span>Seat subscription not included</span></div>'
+      : '<div class="scoring"><b>Ranked on</b><span>'+
+        esc(METRICS.filter(x=>x[0]===rankMetric)[0][1])+' only, no weighting applied</span></div>')+
+  '</div>';
+
+  /* ── teams, always across the whole org so the table is a comparison ── */
+  const teams={};
+  shaped.forEach(m=>{
+    const d=m.dept||'Unassigned';
+    (teams[d]=teams[d]||{dept:d,n:0,score:0,chat:0,cowork:0,code:0,days:0});
+    const T=teams[d];
+    T.n++; T.score+=m.score; T.chat+=m.messages||0; T.cowork+=m.coworkMessages||0;
+    T.code+=m.codeSessions||0; T.days+=m.pct;
+  });
+  const tl=Object.values(teams).map(T=>Object.assign(T,{
+    per:(rankMetric==='spend'||rankMetric==='depth'? T.score/(T.n||1) : Math.round(T.score/(T.n||1))),
+    consistency:T.days/(T.n||1)
+  })).sort((a,b)=>b.per-a.per);
+
+  const steady=people.slice().sort((a,b)=>b.pct-a.pct)[0];
+  const curIdx = curIdx0;
+  const prevRanks = curIdx>0 ? ranksFor(MONTHS[curIdx-1]) : null;
+  let climber=null;
+  const idx = allTime ? MONTHS.length-1 : MONTHS.indexOf(currentMonth);
+  if(idx>0 && DATA.months[MONTHS[idx-1]] && DATA.months[MONTHS[idx]]){
+    const ok=m=>rankTeam==='all'||(m.dept||'Unassigned')===rankTeam;
+    const was={}; DATA.months[MONTHS[idx-1]].members.forEach(p=>was[p.email]=scoreOf(p));
+    DATA.months[MONTHS[idx]].members.filter(ok).filter(c=>!hasLeft(c.name)).forEach(c=>{
+      const b=was[c.email]; if(b==null||b<40) return;
+      const now=scoreOf(c); if(now<=b) return;
+      const lift=(now-b)/b; if(!climber||lift>climber.lift) climber={name:c.name,lift:lift};
+    });
+  }
+  const initial=n=>{const p=String(n).split(' ');return p[0]+(p[1]?' '+p[1][0]:'');};
+
+  h+='<div class="cards">'+
+    card(isSpend?'Costliest team':'Leading team', esc(tl[0].dept), showVal(tl[0].per)+' per person') +
+    card('Most consistent', esc(initial(steady.name)), steady.pct.toFixed(0)+'% of days active') +
+    card('Biggest climber', climber?esc(initial(climber.name)):'—',
+         climber?('up '+Math.round(climber.lift*100)+'% on the month before'):'not enough history') +
+    (rankMetric==='depth'
+      ? card('Average depth',
+             (people.reduce((a,b)=>a+b.score,0)/(people.length||1)).toFixed(1),
+             'of a possible 100')
+      : card(isSpend?'Total spend':'Total '+unitLabel(), showVal(people.reduce((a,b)=>a+b.score,0)),
+             rankTeam==='all'?'across the organisation':'in '+rankTeam)) +
+  '</div>';
+
+  h+='<div class="panel"><div class="p-title">Team standings</div><table class="st">'+
+    '<thead><tr><th></th><th>Team</th><th class="r">People</th><th class="r">Per person</th>'+
+    '<th style="width:30%">Where the points come from</th><th class="r">Days active</th></tr></thead><tbody>'+
+    tl.map((T,i)=>'<tr'+(rankTeam===T.dept?' class="me"':'')+'><td class="rk'+(i===0?' top':'')+'">'+(i+1)+'</td>'+
+      '<td><b>'+esc(T.dept)+'</b></td><td class="r">'+T.n+'</td>'+
+      '<td class="r"><span class="sc">'+showVal(T.per)+'</span></td>'+
+      '<td>'+mixBar({messages:T.chat,coworkMessages:T.cowork,codeSessions:T.code})+'</td>'+
+      '<td class="r">'+T.consistency.toFixed(0)+'%</td></tr>').join('')+
+    '</tbody></table>'+
+    '<div class="p-note">Ranked per person, not by total, so a team of three is not beaten by a team of twenty. '+
+    'This table always covers the whole organisation, so it stays a comparison when a team filter is on.</div></div>';
+
+  h+='<div class="panel"><div class="p-title">Individual standings</div><table class="st">'+
+    '<thead><tr><th></th><th>Name</th><th>Team</th><th class="r">'+esc(isSpend?'Spend':unitLabel().replace(/^./,c=>c.toUpperCase()))+'</th>'+
+    '<th class="r">Move</th>'+
+    '<th style="width:26%">Chat · Cowork · Code</th>'+
+    '<th class="r">Days active</th></tr></thead><tbody>'+
+    people.slice(0,15).map((m,i)=>{
+      return '<tr><td class="rk'+(i<3?' top':'')+'">'+(i+1)+'</td>'+
+        '<td><b>'+esc(m.name)+'</b><div class="lb-s">'+esc(m.title||'')+'</div></td>'+
+        '<td>'+esc(m.dept||'')+'</td>'+
+        '<td class="r"><span class="sc">'+showVal(m.score)+'</span></td>'+
+        '<td class="r">'+movement(prevRanks, m.email, i+1)+'</td>'+
+        '<td>'+(rankMetric==='depth'?depthBar(m):mixBar(m))+'</td>'+
+        '<td class="r">'+m.pct.toFixed(0)+'%</td></tr>';
+    }).join('')+'</tbody></table>'+
+    (prevLabel?'<div class="p-note">Move compares this period with '+esc(prevLabel)+'.</div>':'')+'</div>';
+
+  h+=howTo();
+  return h;
+}
+
+function controlBar(teams){
+  const ps=rankPeriods(), cur=isAll()?ALLTIME:currentMonth, i=ps.indexOf(cur);
+  const label=p=>p===ALLTIME?'All time':longMonth(p);
+  return '<div class="rk-bar">'+
+    '<div class="seg">'+METRICS.map(([k,lbl])=>
+      '<button class="'+(rankMetric===k?'on':'')+'" onclick="setRankMetric(\''+k+'\')">'+
+      esc(lbl)+'</button>').join('')+'</div>'+
+    '<div class="step">'+
+      '<button onclick="stepMonth(-1)"'+(i<=0?' disabled':'')+' title="Earlier">&#8249;</button>'+
+      '<select class="rk-sel" onchange="setMonth(this.value)">'+
+        ps.map(p=>'<option value="'+esc(p)+'"'+(p===cur?' selected':'')+'>'+esc(label(p))+'</option>').join('')+
+      '</select>'+
+      '<button onclick="stepMonth(1)"'+(i>=ps.length-1?' disabled':'')+' title="Later">&#8250;</button>'+
+    '</div>'+
+    '<select class="rk-sel" onchange="setRankTeam(this.value)">'+
+      '<option value="all"'+(rankTeam==='all'?' selected':'')+'>All teams</option>'+
+      teams.map(d=>'<option value="'+esc(d)+'"'+(rankTeam===d?' selected':'')+'>'+esc(d)+'</option>').join('')+
+    '</select>'+
+  '</div>';
+}
+
+const DEPTH_COL=['var(--chat)','var(--cowork)','var(--code)','var(--amber)','var(--link)','var(--spend)'];
+function depthBar(m){
+  if(!m._parts) return '';
+  return '<div class="mix" title="'+esc(m._parts.map(p=>p.name+' '+p.pct.toFixed(0)).join(' · '))+
+    '">'+m._parts.map((p,i)=>'<i style="width:'+(p.pct/DEPTH_CATS.length).toFixed(1)+'%;background:'+
+    DEPTH_COL[i%DEPTH_COL.length]+'"></i>').join('')+'</div>';
+}
+
+/* ═══ VIEW 1 · MONTHLY ══════════════════════════════════ */
+function vAllTime(){
+  const A=DATA.allTime, all=A.members;
+  const used=all.filter(m=>m.daysActive>0);
+  const rankable=all.filter(m=>m.ranked);
+  const avg=rankable.reduce((a,b)=>a+b.pctDaysUsed,0)/(rankable.length||1);
+  const sum=k=>all.reduce((a,b)=>a+(b[k]||0),0);
+
+  let h=howTo();
+  h+='<div class="wnote"><b>All time</b><span class="sep">·</span>'+esc(A.period)+
+     '<span class="sep">·</span>'+A.days+' days<span class="sep">·</span>'+
+     'each person measured against their own start date</div>';
+
+  h+='<div class="note warnbox" style="margin-top:0">Claude was rolled out in waves. '+
+    'Every figure here is <b>per day of access</b>, counted from the day each person\'s '+
+    'account was created, so people who got it later compare fairly. Ranking starts at <b>'+
+    A.minDaysToRank+' days</b> of access.</div>';
+
+  h+='<div class="cards">'+
+    card('Consistency',Math.round(avg)+'%',
+      'Average share of their available days that people used Claude','chat')+
+    card('Chat messages',fmt(sum('messages')),'Across all six months','chat')+
+    card('Cowork messages',fmt(sum('coworkMessages')),'Across all six months','cowork')+
+    card('Code sessions',fmt(sum('codeSessions')),'Across all six months','code')+
+    '</div>';
+
+  /* department consistency — the fair version of the coverage bars */
+  const dp=Object.entries(A.deptPct).sort((a,b)=>b[1]-a[1]);
+  const mx=Math.max(...dp.map(x=>x[1]));
+  h+='<div class="panel"><div class="p-title">How consistently each team uses it'+
+    '<span class="p-note">average share of available days · click a bar to filter the table</span></div>'+
+    '<div class="bars">'+dp.map(([d,v])=>
+      '<div class="bar bar-c'+(deptFilter===d?' on':'')+'" onclick="setDept('+
+      JSON.stringify(d).replace(/"/g,'&quot;')+')"><div class="bar-l" style="width:200px">'+
+      '<span class="chip" style="color:'+(DCOL[d]||'var(--faint)')+'">'+esc(d)+'</span>'+
+      '</div><div class="bar-t"><div class="bar-f" style="width:'+(v/mx*100)+
+      '%;background:'+(DCOL[d]||'var(--faint)')+'"></div></div><div class="bar-v">'+
+      v+'% <span class="of">('+A.deptCount[d]+')</span></div></div>').join('')+'</div>'+
+    '<div class="note">This measures how regularly each team uses Claude, which spreads them '+
+    'from '+Math.round(Math.min(...dp.map(x=>x[1])))+'% to '+Math.round(mx)+'%.</div></div>';
+
+  /* per-product boards, ranked by rate, threshold applied */
+  const board2=(title,sub,key,unit,col)=>{
+    const top=all.filter(m=>m.ranked&&m[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5);
+    return '<div class="panel" style="margin:0"><div class="p-title">'+esc(title)+
+      '<span class="p-note">'+esc(sub)+'</span></div><div class="lb">'+
+      (top.length?top.map((m,i)=>'<div class="lb-row"><div class="lb-i">'+(i+1)+'</div>'+
+        '<div class="lb-n">'+esc(m.name)+'<div class="lb-s">'+esc(m.title)+'</div></div>'+
+        '<div class="lb-v" style="color:'+col+'">'+m[key].toFixed(1)+
+        '<span class="lb-u">'+esc(unit)+'</span></div></div>').join('')
+        :'<div class="lb-empty">Nobody yet.</div>')+'</div></div>';
+  };
+  h+='<div class="g3">'+
+    board2('Chat','per day of access','chatPerDay','msgs/day','var(--chat)')+
+    board2('Cowork','per day of access','coworkPerDay','msgs/day','var(--cowork)')+
+    board2('Claude Code','per day of access','codePerDay','sess/day','var(--code)')+
+    '</div>';
+
+  h+=table(null);
+  return h;
+}
+
+function vMonthly(){
+  if(isAll()) return vAllTime();
+  const md=DATA.months[currentMonth];
+  if(!md) return '<div class="nodata">No data for this month.</div>';
+  const all=md.members, act=all.filter(m=>m.daysActive>0);
+  const sum=k=>act.reduce((a,b)=>a+(b[k]||0),0);
+  const seats=DATA.meta.people;
+  const waffle='<div class="waffle">'+Array.from({length:seats},(_,i)=>
+    '<i class="'+(i<act.length?'':'off')+'"></i>').join('')+'</div>';
+
+  let h=howTo();
+  h+=windowNote();
+  h+='<div class="cards">'+
+    card('Active users',act.length+' <span class="of">/ '+seats+'</span>',
+      Math.round(act.length/seats*100)+'% of the '+seats+' people who held a seat this month, one square each','',waffle)+
+    card('Chat messages',fmt(sum('messages')),
+      'Sent in Claude Chat · '+Math.round(sum('messages')/(act.length||1))+' avg per active user','chat')+
+    card('Cowork messages',fmt(sum('coworkMessages')),
+      'Claude working on files and tasks · '+act.filter(m=>m.coworkMessages>0).length+' users','cowork')+
+    card('Code sessions',fmt(sum('codeSessions')),
+      'Claude Code terminal sessions · '+act.filter(m=>m.codeSessions>0).length+' users','code')+
+
+    '</div>';
+  h+='<div class="panel">'+trend()+'</div>';
+  h+='<div class="panel">'+depts(md)+'</div>';
+  h+='<div class="panel">'+usageSplit(md)+'</div>';
+  h+=table(md);
+  return h;
+}
+
+function trend(){
+  const S=[{k:'messages',l:'Chat messages',c:'#008DCE'},
+           {k:'coworkMessages',l:'Cowork messages',c:'#BA63DA'},
+           {k:'codeSessions',l:'Code sessions',c:'#00C0B0'}];
+  const pts=MONTHS.map(m=>{const mem=DATA.months[m].members,o={m:m.split(' ')[0]};
+    S.forEach(s=>o[s.k]=mem.reduce((a,b)=>a+(b[s.k]||0),0)); return o;});
+  const vis=S.filter(s=>!hidden[s.k]);
+  const max=Math.max(1,...pts.flatMap(p=>vis.map(s=>p[s.k])));
+  const W=1200,H=270,PL=64,PR=76,PT=14,PB=34,iw=W-PL-PR,ih=H-PT-PB;
+  const x=i=>PL+(pts.length===1?iw/2:i*iw/(pts.length-1)), y=v=>PT+ih-(v/max)*ih;
+  let g='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:270px" role="img" aria-label="Usage trend">';
+  for(let i=0;i<=4;i++){const gy=PT+ih-(i/4)*ih;
+    g+='<line x1="'+PL+'" y1="'+gy+'" x2="'+(W-PR)+'" y2="'+gy+'" stroke="var(--line)"/>'+
+       '<text x="'+(PL-12)+'" y="'+(gy+4)+'" fill="var(--faint)" font-size="11" text-anchor="end">'+
+       Math.round(max*i/4).toLocaleString('en-GB')+'</text>';}
+  // the month you have selected is marked, so the chart visibly answers the pills
+  const sel=Math.max(0,MONTHS.indexOf(currentMonth));
+  g+='<line x1="'+x(sel)+'" y1="'+PT+'" x2="'+x(sel)+'" y2="'+(PT+ih)+
+     '" stroke="var(--ink)" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>';
+  pts.forEach((p,i)=>{const on=i===sel;
+    g+='<text x="'+x(i)+'" y="'+(H-10)+'" fill="'+(on?'var(--ink)':'var(--faint)')+
+       '" font-size="11" text-anchor="middle"'+(on?' font-weight="500"':'')+'>'+esc(p.m)+'</text>';});
+  vis.forEach(s=>{
+    g+='<path d="'+pts.map((p,i)=>(i?'L':'M')+x(i)+' '+y(p[s.k])).join(' ')+
+       '" fill="none" stroke="'+s.c+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    pts.forEach((p,i)=>{g+='<circle cx="'+x(i)+'" cy="'+y(p[s.k])+'" r="'+(i===sel?5.6:3.4)+'" fill="'+s.c+
+      '" stroke="var(--surface)" stroke-width="2"><title>'+esc(p.m)+' · '+esc(s.l)+': '+fmt(p[s.k])+'</title></circle>';});
+  });
+  const last=pts[pts.length-1];
+  const lab=vis.map(s=>({c:s.c,v:last[s.k],y:y(last[s.k])})).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<lab.length;i++) if(lab[i].y-lab[i-1].y<14) lab[i].y=lab[i-1].y+14;
+  lab.forEach(l=>{g+='<text x="'+(x(pts.length-1)+11)+'" y="'+(l.y+4)+'" fill="'+l.c+
+    '" font-size="11.5" font-weight="500">'+fmt(l.v)+'</text>';});
+  g+='</svg>';
+  const leg=S.map(s=>'<div class="legend-i'+(hidden[s.k]?' off':'')+'" onclick="tog(\''+s.k+'\')">'+
+    '<i style="background:'+s.c+'"></i>'+esc(s.l)+'</div>').join('');
+  const cur=pts[sel];
+  const summary=S.filter(t=>!hidden[t.k])
+    .map(t=>'<span style="color:'+t.c+'">'+fmt(cur[t.k])+'</span> '+esc(t.l.toLowerCase())).join(' · ');
+  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;'+
+    'flex-wrap:wrap;margin-bottom:14px"><div class="p-title" style="margin:0">Usage trends · '+
+    esc(MONTHS[0].toUpperCase())+' – '+esc(MONTHS[MONTHS.length-1].toUpperCase())+
+    '<span class="p-note">every month, with '+esc(longMonth(currentMonth))+' marked · '+
+    'click a legend item to show or hide a line</span></div>'+
+    '<div class="legend">'+leg+'</div></div>'+
+    '<div class="note" style="margin-top:0;margin-bottom:12px"><b>'+esc(longMonth(currentMonth))+
+    ':</b> '+summary+'</div>'+
+    '<div style="overflow-x:auto">'+g+'</div>';
+}
+function tog(k){ hidden[k]=!hidden[k]; render(); }
+
+function depts(md){
+  const tot=DATA.meta.deptTotals||{}, by={};
+  Object.keys(tot).forEach(d=>by[d]={total:tot[d],active:0});
+  md.members.forEach(m=>{ by[m.dept]=by[m.dept]||{total:0,active:0};
+    if(m.daysActive>0) by[m.dept].active++; });
+  const rows=Object.entries(by).sort((a,b)=>b[1].total-a[1].total).map(([d,v])=>{
+    const p=v.total?v.active/v.total:0;
+    return '<div class="bar click'+(deptFilter===d?' on':'')+'" onclick="setDept('+
+      JSON.stringify(d).replace(/"/g,'&quot;')+')"><div class="bar-l">'+esc(d)+'</div>'+
+      '<div class="bar-t"><div class="bar-f" style="width:'+(p*100)+'%;background:'+
+      (DCOL[d]||'var(--faint)')+'"></div></div>'+
+      '<div class="bar-v">'+v.active+'/'+v.total+' ('+Math.round(p*100)+'%)</div></div>';
+  }).join('');
+  return '<div class="p-title">Adoption by department<span class="p-note">click to filter the table below</span></div>'+
+    '<div class="bars">'+rows+'</div>';
+}
+function setDept(d){ deptFilter=(deptFilter===d?'all':d); render(); }
+function setBand(k){ bandFilter=(bandFilter===k?null:k); render(); }
+
+function usageSplit(md){
+  const days=md.days, b={active:[],min:[],none:[]};
+  md.members.forEach(m=>b[statusOf(m,days).k].push(m));
+  const t=md.members.length;
+  const row=(k,l,c,list)=>'<div class="bar bar-c'+(bandFilter===k?' on':'')+
+    '" onclick="setBand(\''+k+'\')" title="Click to list these people in the table below">'+
+    '<div class="bar-l">'+l+'</div><div class="bar-t">'+
+    '<div class="bar-f" style="width:'+(t?list.length/t*100:0)+'%;background:'+c+'"></div></div>'+
+    '<div class="bar-v">'+list.length+' of '+t+'</div></div>';
+  const names=(bandFilter&&b[bandFilter]?b[bandFilter]:b.none).map(m=>m.name).sort();
+  const lbl={active:'Active',min:'Minimal',none:'No usage'}[bandFilter||'none'];
+  return '<div class="p-title">Who is actually using it'+
+    '<span class="p-note">click a band to list those people · counts any day with activity '+
+    'anywhere in Claude — chat, Cowork or Claude Code — not per product</span></div>'+
+    '<div class="bars">'+row('active','Active (used it on 40%+ of days)','var(--ok)',b.active)+
+    row('min','Minimal (used it, but on under 40% of days)','var(--warn)',b.min)+
+    row('none','No usage at all','var(--bad)',b.none)+'</div>'+
+    (names.length?'<div class="note"><b>'+esc(lbl)+' in '+esc(currentMonth)+' ('+names.length+'):</b> '+
+      esc(names.join(', '))+'.</div>':'');
+}
+
+function modelPanel(){
+  const M=DATA.modelSpend, names=['Fable','Opus','Sonnet','Haiku'];
+  const col={Fable:'var(--chat)',Opus:'var(--spend)',Sonnet:'var(--code)',Haiku:'var(--cowork)'};
+  const rows=M.windows.map(w=>{
+    const tot=names.reduce((a,n)=>a+(w.by[n]||0),0)||1;
+    const segs=names.filter(n=>w.by[n]>0).map(n=>
+      '<div style="width:'+(w.by[n]/tot*100)+'%;background:'+col[n]+
+      ';height:100%" title="'+esc(n)+': $'+w.by[n]+'"></div>').join('');
+    const share=names.filter(n=>w.by[n]>0)
+      .map(n=>esc(n)+' '+Math.round(w.by[n]/tot*100)+'%').join(' · ');
+    return '<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;'+
+      'font-size:.82rem;margin-bottom:5px"><span><b>'+esc(w.label)+'</b> '+
+      '<span style="color:var(--faint)">'+esc(w.sub)+(w.derived?' · derived':'')+
+      (w.approx?', approximate':'')+'</span></span>'+
+      '<span style="color:var(--muted)">$'+tot+'</span></div>'+
+      '<div style="display:flex;height:15px;border-radius:4px;overflow:hidden;gap:2px;'+
+      'background:var(--track)">'+segs+'</div>'+
+      '<div style="font-size:.74rem;color:var(--faint);margin-top:4px">'+share+'</div></div>';
+  }).join('');
+  const key=names.map(n=>'<span class="key-i"><span class="sq" style="background:'+col[n]+
+    '"></span>'+esc(n)+'</span>').join('');
+  return '<div class="panel"><div class="p-title">Which models the spend ran on'+
+    '<span class="p-note">US dollars · '+esc(M.source.split(', ')[1])+'</span></div>'+
+    '<div class="key" style="margin-bottom:12px">'+key+'</div>'+rows+
+    '<div class="note warnbox"><b>Spend, not messages.</b> '+esc(M.caveat)+'</div>'+
+    '<div class="note">'+esc(M.derivedNote)+'</div></div>';
+}
+
+function board(title,sub,key,unit,col,act){
+  const top=act.filter(m=>m[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5);
+  const rows=top.length?top.map((m,i)=>
+    '<div class="lb-row"><div class="lb-i">'+(i+1)+'</div><div class="lb-n">'+esc(m.name)+
+    '<div class="lb-s">'+esc(m.title)+'</div></div>'+
+    '<div class="lb-v" style="color:'+col+'">'+fmt(m[key])+'<span class="lb-u">'+esc(unit)+'</span></div></div>').join('')
+    :'<div class="lb-empty">Nobody used this in '+esc(currentMonth.split(' ')[0])+'.</div>';
+  return '<div class="panel" style="margin:0"><div class="p-title">'+esc(title)+
+    '<span class="p-note">'+esc(sub)+'</span></div><div class="lb">'+rows+'</div></div>';
+}
+
+function table(md){
+  const depts=Object.keys(DATA.meta.deptTotals||{}).sort();
+  const sorts=[['name','Name (A–Z)'],['daysActive','Most days active'],['messages','Most Chat messages'],
+    ['coworkMessages','Most Cowork messages'],['codeSessions','Most Code sessions']];
+  return '<div class="panel"><div class="ctrls">'+
+    '<span class="ctrl-l">All members</span>'+
+    '<select class="sel sel-m" onchange="setMonth(this.value)" '+
+    'title="Switch month without losing your filters">'+
+    MONTHS.map(m=>'<option value="'+esc(m)+'"'+(currentMonth===m?' selected':'')+'>'+
+      esc(longMonth(m))+(m===MONTHS[MONTHS.length-1]?' (so far)':'')+'</option>').join('')+
+    '<option value="'+ALLTIME+'"'+(isAll()?' selected':'')+'>All time</option>'+
+    '</select>'+
+    '<input class="q" id="q" placeholder="Search name, role or department" value="'+esc(term)+
+    '" autocomplete="off" oninput="onSearch(this.value)">'+
+    '<select class="sel" onchange="setDept(this.value)"><option value="all"'+
+    (deptFilter==='all'?' selected':'')+'>All departments</option>'+
+    depts.map(d=>'<option value="'+esc(d)+'"'+(deptFilter===d?' selected':'')+'>'+esc(d)+'</option>').join('')+
+    '</select>'+
+    '<select class="sel" onchange="setSort(this.value)">'+
+    sorts.concat(isAll()?[['pctDaysUsed','Highest % of days used']]:[])
+      .map(([k,l])=>'<option value="'+k+'"'+(sortKey===k?' selected':'')+'>'+esc(l)+'</option>').join('')+
+    '</select>'+
+    '<div class="key"><span class="key-i"><span class="sq sq-a"></span>Active</span>'+
+    '<span class="key-i"><span class="sq sq-m"></span>Minimal</span>'+
+    '<span class="key-i"><span class="sq sq-n"></span>No usage</span></div>'+
+    '<button class="csv" onclick="csv()">Download CSV</button>'+
+    '<span class="cnt" id="cnt"></span></div>'+
+    '<div class="tw" id="tbox"><table><thead><tr><th>Name / title</th><th>Department</th>'+
+    '<th class="n">Days used</th>'+
+    (isAll()?'<th class="n" title="Share of the days that person has had Claude on which '+
+      'they used it">% of days<br><span class="th-s">they had access</span></th>':'')+
+    '<th class="n">Chat msgs</th><th class="n">Cowork msgs</th>'+
+    '<th class="n">Code sessions</th></tr></thead>'+
+    '<tbody id="tb"></tbody></table></div></div>';
+}
+
+function rowsNow(){
+  // all-time has no single month record; each person carries their own denominator
+  const md = isAll()
+    ? {members:DATA.allTime.members, days:DATA.allTime.days, all:true}
+    : DATA.months[currentMonth];
+  let r=md.members.slice();
+  if(deptFilter!=='all') r=r.filter(m=>m.dept===deptFilter);
+  if(bandFilter && !md.all) r=r.filter(m=>statusOf(m,md.days).k===bandFilter);
+  const t=term.trim().toLowerCase();
+  if(t) r=r.filter(m=>m.name.toLowerCase().includes(t)||
+    (m.title||'').toLowerCase().includes(t)||(m.dept||'').toLowerCase().includes(t));
+  r.sort((a,b)=>sortKey==='name'
+    ? (a.name||'').localeCompare(b.name||'')
+    : ((b[sortKey]||0)-(a[sortKey]||0)));
+  return {r,md};
+}
+function paintRows(){
+  const tb=document.getElementById('tb'); if(!tb) return;
+  const {r,md}=rowsNow(), days=md.days, allv=!!md.all;
+  tb.innerHTML = r.length ? r.map(m=>{
+    // in all-time each person is measured against their own days of access
+    const denom = allv ? m.availDays : days;
+    const st = denom ? statusOf(m,denom) : {k:'none',label:'No account',c:'var(--bad)'};
+    const col=DCOL[m.dept]||'var(--faint)';
+    const n=(v,c)=>'<td class="n '+(v?c:'z')+'">'+(v?fmt(v):'—')+'</td>';
+    let pct='';
+    if(!allv){ pct=''; }
+    else if(m.pctDaysUsed!=null){
+      pct='<td class="n"><b>'+m.pctDaysUsed.toFixed(0)+'%</b>'+
+          (m.ranked?'':'<span class="unranked" title="Fewer than '+DATA.allTime.minDaysToRank+
+           ' days of access, so not ranked">*</span>')+'</td>';
+    }else{
+      pct='<td class="n z" title="No Claude account, so there is nothing to measure against">n/a</td>';
+    }
+    const since = allv && m.created
+      ? '<div class="nm-s">has had Claude since '+esc(niceDate(m.created))+'</div>' : '';
+    return '<tr class="'+(st.k==='none'?'none':'')+'">'+
+      '<td><div class="nm"><span class="nm-d" style="background:'+st.c+'" title="'+st.label+'"></span>'+
+      '<div><div class="nm-t">'+esc(m.name)+'</div><div class="nm-s">'+esc(m.title)+'</div>'+
+      since+'</div></div></td>'+
+      '<td><span class="chip" style="color:'+col+'">'+esc(m.dept)+'</span></td>'+
+      '<td class="days">'+m.daysActive+' / '+(denom==null?'—':denom)+'</td>'+
+      pct+
+      n(m.messages,'chat')+n(m.coworkMessages,'cowork')+n(m.codeSessions,'code')+
+      '</tr>';
+  }).join('') : '<tr><td colspan="'+(isAll()?7:6)+'" class="nodata">Nobody matches that.</td></tr>';
+  const c=document.getElementById('cnt');
+  if(c) c.textContent=r.length+' of '+md.members.length+' members';
+  /* lock height so filtering never shifts the page under the cursor */
+  const box=document.getElementById('tbox');
+  if(box && deptFilter==='all' && !term.trim()){
+    box.style.minHeight='0px'; box.style.minHeight=box.offsetHeight+'px';
+  }
+}
+function onSearch(v){ term=v; paintRows(); }
+function setSort(k){ sortKey=k; paintRows(); }
+
+function csv(){
+  const {r,md}=rowsNow(); if(!r.length) return;
+  const allv=!!md.all;
+  const out=r.map(m=>{
+    const denom = allv ? m.availDays : md.days;
+    const row={Name:m.name,Title:m.title,Department:m.dept,
+      Status: denom?statusOf(m,denom).label:'No account',
+      'Days active':m.daysActive,'Days in period':denom==null?'':denom,
+      'Chat messages':m.messages,'Cowork messages':m.coworkMessages,
+      'Code sessions':m.codeSessions};
+    if(allv){
+      row['Has had Claude since']=m.created||'';
+      row['% of days used']=m.pctDaysUsed==null?'':m.pctDaysUsed;
+      row['Ranked']=m.ranked?'yes':'no';
+    }
+    return row;
+  });
+  const h=Object.keys(out[0]);
+  const body=[h.join(',')].concat(out.map(x=>h.map(k=>{
+    const v=String(x[k]); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(','))).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([body],{type:'text/csv'}));
+  a.download='TZ_Claude_'+currentMonth.replace(/ /g,'_')+'.csv'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ═══ VIEW 2 · USAGE DETAIL ═════════════════════════════ */
+function vUsage(){
+  const s=DATA.snapshot;
+  let h=windowNote();
+  h+='<div class="cards">'+
+    card('Conversations',fmt(s.outputs.conversations),'Chat and Cowork threads started','chat')+
+    card('File operations',fmt(s.outputs.fileOperations),'Files created or edited by Claude','cowork')+
+    card('Pull requests',fmt(s.outputs.prsCreated),'Raised with Claude Code','code')+
+    card('MCP writes',fmt(s.outputs.mcpWrites),'Actions written back to connected tools','')+
+
+    card('Est. time saved','~'+fmt(s.timeSaved.hours)+' hrs',"Anthropic's model, assumptions below",'spend')+
+    '</div>';
+  h+='<div class="panel"><div class="p-title">How the time saved figure is built'+
+    '<span class="p-note">Anthropic\'s default assumptions, editable in the Claude admin console</span></div>'+
+    '<div class="tw"><table><thead><tr><th>Verified output</th><th class="n">Minutes saved each</th>'+
+    '<th class="n">Hours</th></tr></thead><tbody>'+
+    s.timeSaved.assumptions.map(a=>{
+      const c=parseInt(String(a.output).replace(/[^0-9]/g,''),10)||0;
+      return '<tr><td>'+esc(a.output)+'</td><td class="n">'+a.minutesEach+'</td>'+
+        '<td class="n">'+(c*a.minutesEach/60).toFixed(1)+'</td></tr>';}).join('')+
+    '</tbody></table></div><div class="note">The 150 minutes per pull request assumption does most of '+
+    'the work here. Treat the headline as an order of magnitude, not a precise figure.</div></div>';
+  h+='<div class="g2">'+depth(s)+sticky(s)+'</div>';
+  h+='<div class="panel">'+fileCats(s)+'</div>';
+  h+='<div class="g2">'+skills(s)+connectors(s)+'</div>';
+  h+=agenticPanel(s);
+  h+=projects(s);
+  h+=historyPanel();
+  h+=codePanel(s);
+  return h;
+}
+function depth(s){
+  const a=s.adoptionLevel, seats=DATA.meta.members;
+  const rows=[['Have a seat',a.allMembers,'var(--chat)'],['Active this month',a.monthly,'var(--chat)'],
+    ['Active this week',a.weekly,'var(--chat)'],['Active yesterday',a.daily,'var(--amber)']]
+    .map(([l,v,c])=>'<div class="bar"><div class="bar-l">'+l+'</div><div class="bar-t">'+
+      '<div class="bar-f" style="width:'+(v/seats*100)+'%;background:'+c+'"></div></div>'+
+      '<div class="bar-v">'+v+' ('+Math.round(v/seats*100)+'%)</div></div>').join('');
+  return '<div class="panel" style="margin:0"><div class="p-title">Depth of adoption'+
+    '<span class="p-note">of the '+seats+' current members · rolling 30 days to '+niceDate(s.dataAsOf)+'</span></div><div class="bars">'+rows+'</div>'+
+    '<div class="note">Breadth is strong and depth is thin. Nearly everyone has used Claude at some '+
+    'point this month, but only <b>'+a.daily+'</b> used it yesterday. Daily use is the number to move.</div></div>';
+}
+function sticky(s){
+  const rows=s.stickiness.map((p,i)=>'<div class="bar"><div class="bar-l">'+esc(p.product)+'</div>'+
+    '<div class="bar-t"><div class="bar-f" style="width:'+Math.min(100,p.dauMau/0.25*100)+
+    '%;background:'+CAT[i]+'"></div></div><div class="bar-v">'+pc(p.dauMau)+'</div></div>').join('');
+  return '<div class="panel" style="margin:0"><div class="p-title">Product stickiness'+
+    '<span class="p-note">daily actives as a share of monthly actives</span></div>'+
+    '<div class="bars">'+rows+'</div><div class="note">A higher share means people return day after day '+
+    'rather than dipping in occasionally. Cowork is the stickiest at '+pc(s.stickiness[0].dauMau)+
+    '. Office Agents is provisioned but unused.</div></div>';
+}
+function fileCats(s){
+  const f=s.fileCategories;
+  return '<div class="p-title">What Claude is actually working on<span class="p-note">'+
+    fmt(f.total)+' file operations in Cowork, by file type</span></div><div class="stack">'+
+    f.categories.map((c,i)=>'<i style="width:'+(c.share*100)+'%;background:'+CAT[i%CAT.length]+
+      '" title="'+esc(c.category)+': '+fmt(c.count)+'"></i>').join('')+'</div><div class="slegend">'+
+    f.categories.map((c,i)=>'<span><span class="dot" style="background:'+CAT[i%CAT.length]+'"></span>'+
+      esc(c.category)+' · '+fmt(c.count)+' ('+(c.share*100).toFixed(1)+'%)</span>').join('')+'</div>';
+}
+function skills(s){
+  const tz=s.skills.filter(k=>k.builtBy==='Ashgrove Press').length;
+  return '<div class="panel" style="margin:0"><div class="p-title">Skills in use'+
+    '<span class="p-note">packaged instructions people invoke by name</span></div>'+
+    '<div class="tw"><table><thead><tr><th>Skill</th><th class="n">Uses</th><th class="n">Cost each</th>'+
+    '</tr></thead><tbody>'+s.skills.map(k=>'<tr><td>'+esc(k.skill)+
+      (k.builtBy==='Ashgrove Press'?' <span class="tag">In house</span>':'')+'</td>'+
+      '<td class="n">'+fmt(k.uses)+'</td><td class="n'+(k.costPerUse?'':' z')+'">'+
+      (k.costPerUse?'$'+k.costPerUse.toFixed(2):'—')+'</td></tr>').join('')+
+    '</tbody></table></div><div class="note"><b>'+tz+' of the top five are ours.</b> Skills we build '+
+    'get used, which is the cheapest lever we have for raising adoption.</div></div>';
+}
+function connectors(s){
+  const g=s.connectors.find(c=>c.connector==='google-drive');
+  return '<div class="panel" style="margin:0"><div class="p-title">Connectors'+
+    '<span class="p-note">tools Claude reads from and writes back to</span></div>'+
+    '<div class="tw"><table><thead><tr><th>Connector</th><th class="n">Users</th><th class="n">Reads</th>'+
+    '<th class="n">Writes</th></tr></thead><tbody>'+s.connectors.map(c=>'<tr><td>'+esc(c.connector)+
+      '</td><td class="n">'+c.users+'</td><td class="n">'+fmt(c.reads)+'</td>'+
+      '<td class="n'+(c.writes?'':' z')+'">'+(c.writes?fmt(c.writes):'—')+'</td></tr>').join('')+
+    '</tbody></table></div><div class="note">Reads outweigh writes almost everywhere. google-drive has '+
+    fmt(g?g.reads:0)+' reads against '+fmt(g?g.writes:0)+' writes, so material is being pulled in but little '+
+    'goes back. That gap is where automation would pay.</div></div>';
+}
+function projects(s){
+  const pm=s.projectsMeta, all=s.projectsAll;
+  const bars=pm.createdByMonth.map(([m,n])=>{
+    const mx=Math.max(...pm.createdByMonth.map(x=>x[1]));
+    return '<div class="bar"><div class="bar-l" style="width:44px">'+esc(m)+'</div>'+
+      '<div class="bar-t"><div class="bar-f" style="width:'+(n/mx*100)+
+      '%;background:var(--chat)"></div></div><div class="bar-v" style="width:32px">'+n+'</div></div>';
+  }).join('');
+  return '<div class="panel"><div class="p-title">Projects'+
+    '<span class="p-note">all '+pm.totalProjects+', from '+esc(pm.source.split(', ')[1])+'</span></div>'+
+    '<div class="cards" style="margin-bottom:14px">'+
+      card('Projects in total',pm.totalProjects,'Created since March, by '+pm.distinctCreators+' different people','chat')+
+      card('Shared with someone',pm.sharedProjects,'The other '+(pm.totalProjects-pm.sharedProjects)+' have a single user','cowork')+
+      card('Used once and dropped',pm.singleConversation,'Only one conversation ever started in them','')+
+    '</div>'+
+    '<div class="p-title" style="margin-top:4px">Projects created each month</div>'+
+    '<div class="bars" style="margin-bottom:14px">'+bars+'</div>'+
+    '<div class="tw" style="max-height:340px;overflow:auto"><table><thead><tr><th>Project</th>'+
+    '<th class="n">Users</th><th class="n">Threads</th><th class="n">Messages</th>'+
+    '<th>Created</th><th>Created by</th></tr></thead><tbody>'+
+    all.map(p=>'<tr><td>'+esc(p.project)+'</td>'+
+      '<td class="n'+(p.users>1?' cowork':'')+'">'+p.users+'</td>'+
+      '<td class="n">'+p.conversations+'</td><td class="n">'+fmt(p.messages)+'</td>'+
+      '<td>'+esc(p.created)+'</td><td>'+esc(nameOf(p.createdBy))+'</td></tr>').join('')+
+    '</tbody></table></div>'+
+    '<div class="note"><b>'+pm.totalProjects+' projects</b> hold '+fmt(pm.totalMessages)+
+    ' messages between them, going back to March. Claude\'s own analytics shows '+
+    pm.createdInWindow+' for the last 30 days.</div>'+
+    '<div class="note"><b>'+pm.sharedProjects+' of '+pm.totalProjects+' have more than one user.</b> '+
+    esc(pm.sharedMeaning)+' '+pm.singleConversation+' hold a single conversation, so most are created '+
+    'as a filing habit rather than a place work accumulates.</div>'+
+    '<div class="note warnbox"><b>Chat projects.</b> '+esc(pm.coworkNote)+'</div></div>';
+}
+
+function historyPanel(){
+  const H=DATA.history||[];
+  const rows=[
+    ['Actions per prompt', c=>c.actionsPerPrompt.toFixed(1)],
+    ['Active this month',  c=>c.adoptionLevel.monthly],
+    ['Active yesterday',   c=>c.adoptionLevel.daily],
+    ['Conversations',      c=>fmt(c.outputs.conversations)],
+    ['Pull requests',      c=>fmt(c.outputs.prsCreated)],
+    ['Projects in total',  c=>c.projectsTotal],
+    ['Projects shared',    c=>c.projectsShared],
+    ['Metered spend',      c=>'\u00a3'+c.meteredTotalGBP.toFixed(2)],
+    ['People billed',      c=>c.meteredUsersBilled],
+  ];
+  const head='<tr><th>Measure</th>'+H.map(c=>'<th class="n">'+esc(niceDate(c.capturedAt))+'</th>').join('')+'</tr>';
+  const body=rows.map(([l,f])=>'<tr><td>'+esc(l)+'</td>'+
+    H.map(c=>'<td class="n">'+f(c)+'</td>').join('')+'</tr>').join('');
+  const one = H.length<2;
+  return '<div class="panel"><div class="p-title">Snapshot history'+
+    '<span class="p-note">'+H.length+' capture'+(H.length===1?'':'s')+' kept</span></div>'+
+    '<div class="note" style="margin-top:0">The rolling 30-day figures and per-person spend are '+
+    'both point-in-time, so each monthly refresh stores a copy here and this table grows into a '+
+    'trend.</div>'+
+    '<div class="tw"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+
+    (one?'<div class="note warnbox"><b>History starts here.</b> A second column appears at the '+
+      'next monthly refresh, and a usable trend after three or four. Each column is what Claude '+
+      'reported on that date.</div>':'')+
+    '</div>';
+}
+
+function agenticPanel(s){
+  const a=s.agentic.actionsPerPrompt;
+  return '<div class="panel"><div class="p-title">How agentic the usage is'+
+    '<span class="p-note">rolling 30 days to '+niceDate(s.dataAsOf)+'</span></div>'+
+    '<div class="k-num cowork" style="font-size:3rem;line-height:1.1">'+a.toFixed(1)+'</div>'+
+    '<div style="font-size:.82rem;color:var(--muted);margin-top:2px">'+
+    'actions Claude takes per instruction given</div>'+
+    '<div class="note">Every prompt someone writes currently produces <b>'+a.toFixed(1)+'</b> steps '+
+    '— reading a file, running a search, making an edit, calling a connected tool. Near 1 would mean '+
+    'people are using Claude as a question-and-answer box. Above about 4 means they are handing over '+
+    'whole tasks and Claude is working through them. This is the one figure here that describes '+
+    '<i>how</i> Claude is used rather than how much.</div>'+
+    '<div class="note">It is an average across a small organisation, so one heavy Cowork or Claude '+
+    'Code user moves it. Treat a change of a few tenths as noise.</div></div>';
+}
+
+function codePanel(s){
+  const c=s.claudeCode;
+  return '<div class="panel"><div class="p-title">Claude Code</div><div class="cards" style="margin-bottom:0">'+
+    card('Suggestion accept rate',(c.suggestionAcceptRate*100).toFixed(1)+'%','Share of suggestions engineers kept','code')+
+    card('Lines of code accepted',fmt(c.linesOfCodeAccepted),'Merged into the codebase','code')+
+    card('Actions per prompt',s.agentic.actionsPerPrompt,'Work delegated per instruction','chat')+
+    '</div>'+(c.perUserAvailable?'':'<div class="note"><b>Per-engineer detail is not available yet.</b> '+
+    esc(c.blockedReason)+'</div>')+'</div>';
+}
+
+/* ═══ VIEW 3 · COST ═════════════════════════════════════
+   Built around the questions a reader actually has, not
+   accounting terms. Seats and usage are two different
+   charges in two different currencies and are never added. */
+function vCost(){
+  const c=DATA.snapshot.cost;
+  const gbp=n=>'£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const usd=n=>'$'+Math.round(Number(n)).toLocaleString('en-GB');
+
+  let h='<div class="wnote"><b>'+esc(c.reportedMonth)+'</b><span class="sep">·</span>'+
+    'Invoices from the Claude billing page<span class="sep">·</span>'+
+    'Usage from the analytics API</div>';
+
+  h+=modelPanel();
+  h+='<div class="panel"><div class="p-title">How Claude is charged</div>'+
+     '<div style="font-size:.92rem;line-height:1.7;max-width:62ch">'+esc(c.explainer)+'</div></div>';
+
+  /* the two charges, kept visually apart */
+  h+='<div class="g2">'+
+    '<div class="panel" style="margin:0"><div class="p-title">1 · The monthly bill</div>'+
+      '<div class="k-num" style="font-size:2.4rem">'+gbp(c.subscription.amount)+'</div>'+
+      '<div class="k-sub" style="margin-top:12px">'+c.subscription.members+' seats, invoiced '+
+      esc(c.subscription.invoiceDate)+'. '+esc(c.subscription.note)+'</div></div>'+
+    '<div class="panel" style="margin:0"><div class="p-title">2 · Usage on top</div>'+
+      '<div class="k-num spend" style="font-size:2.4rem">'+usd(c.usage.amount)+'</div>'+
+      '<div class="k-sub" style="margin-top:12px">'+esc(c.usage.note)+
+      ' Reported in US dollars by Anthropic, so it is not added to the figure on the left.</div></div>'+
+    '</div>';
+
+  h+='<div class="g2">'+
+    '<div class="panel" style="margin:0"><div class="p-title">Prepaid credit balance</div>'+
+      '<div class="k-num" style="font-size:2rem">'+gbp(c.credits.balance)+'</div>'+
+      '<div class="k-sub" style="margin-top:12px">'+esc(c.credits.note)+' '+
+      esc(c.credits.autoReload)+'.</div></div>'+
+    '<div class="panel" style="margin:0"><div class="p-title">Next bill</div>'+
+      '<div class="k-num" style="font-size:2rem">'+gbp(c.nextInvoice.projected)+'</div>'+
+      '<div class="k-sub" style="margin-top:12px">Due '+esc(c.nextInvoice.date)+', for '+
+      c.nextInvoice.seats+' seats with '+c.nextInvoice.seatsAvailable+' unused. '+
+      'Lower than July despite more seats, which is worth understanding before reading a trend into it.'+
+      '</div></div></div>';
+
+  /* what the usage went on, this month */
+  const jul=c.usageByMonth.find(m=>m.month==='Jul');
+  const parts=[['Claude Code',jul.code,'var(--code)'],['Chat',jul.chat,'var(--chat)'],
+               ['Cowork',jul.cowork,'var(--cowork)'],['Other',jul.other,'var(--faint)']]
+              .filter(p=>p[1]>0).sort((a,b)=>b[1]-a[1]);
+  const mx=Math.max(...parts.map(p=>p[1]));
+  h+='<div class="panel"><div class="p-title">What the usage went on'+
+    '<span class="p-note">July, in US dollars</span></div><div class="bars">'+
+    parts.map(([l,v,col])=>'<div class="bar"><div class="bar-l">'+l+'</div><div class="bar-t">'+
+      '<div class="bar-f" style="width:'+(v/mx*100)+'%;background:'+col+'"></div></div>'+
+      '<div class="bar-v">'+usd(v)+'</div></div>').join('')+'</div></div>';
+
+  /* month by month, stacked, actuals only */
+  h+='<div class="panel"><div class="p-title">Usage month by month'+
+    '<span class="p-note">actual figures, no forecasting. Excludes the seat bill.</span></div>'+
+    usageChart(c.usageByMonth)+
+    '<div class="slegend">'+
+    [['Claude Code','var(--code)'],['Cowork','var(--cowork)'],['Chat','var(--chat)'],
+     ['Other','var(--faint)']].map(([l,col])=>
+      '<span><span class="dot" style="background:'+col+'"></span>'+l+'</span>').join('')+
+    '</div></div>';
+
+  /* plain-language watch list */
+  h+='<div class="panel"><div class="p-title">What to watch</div>'+
+    c.watch.map(w=>'<div class="note" style="margin-top:0;margin-bottom:11px">'+
+      '<b>'+esc(w.title)+'.</b> '+esc(w.body)+'</div>').join('')+'</div>';
+
+  /* who the metered spend actually goes to — billed amounts, not estimates */
+  const mt=c.metered, share=v=>Math.round(v/mt.total*100);
+  h+='<div class="panel"><div class="p-title">Who the metered usage goes to'+
+    '<span class="p-note">actual billed amounts · '+esc(mt.period)+' · resets '+esc(mt.resets)+'</span></div>'+
+    '<div class="note" style="margin-top:0">These are the amounts Claude has billed, taken from the '+
+    'usage page, not an estimate. <b>'+mt.usersBilled+' of '+mt.usersTotal+'</b> people have any '+
+    'metered usage at all; the other '+(mt.usersTotal-mt.usersBilled)+' are fully covered by their seat.</div>'+
+    '<div class="lb">'+mt.top.map((m,i)=>
+      '<div class="lb-row"><div class="lb-i">'+(i+1)+'</div><div class="lb-n">'+esc(m.name)+
+      '<div class="lb-s">'+esc(m.title)+' · '+esc(m.email)+'</div></div>'+
+      '<div class="lb-v" style="color:var(--spend)">'+gbp(m.spend)+
+      '<span class="lb-u">'+share(m.spend)+'% of total</span></div></div>').join('')+'</div>'+
+    '<div class="note"><b>'+gbp(mt.total)+'</b> in total across '+mt.usersTotal+' people ('+
+    mt.standardSeats+' standard seats, '+mt.premiumSeats+' premium).</div></div>';
+  return h;
+}
+
+/* stacked monthly bars — actuals, partial months hatched */
+function usageChart(rows){
+  const W=1200,H=260,PL=58,PR=20,PT=18,PB=44,iw=W-PL-PR,ih=H-PT-PB;
+  const max=Math.max(1,...rows.map(r=>r.total));
+  const bw=Math.min(88, iw/rows.length*0.54);
+  const seg=[['code','var(--code)'],['cowork','var(--cowork)'],
+             ['chat','var(--chat)'],['other','var(--faint)']];
+  let g='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:260px" role="img" '+
+        'aria-label="Metered usage by month">';
+  for(let i=0;i<=4;i++){const gy=PT+ih-(i/4)*ih;
+    g+='<line x1="'+PL+'" y1="'+gy+'" x2="'+(W-PR)+'" y2="'+gy+'" stroke="var(--line)"/>'+
+       '<text x="'+(PL-11)+'" y="'+(gy+4)+'" fill="var(--faint)" font-size="11" text-anchor="end">$'+
+       Math.round(max*i/4)+'</text>';}
+  rows.forEach((r,i)=>{
+    const cx=PL+(i+0.5)*iw/rows.length;
+    let y=PT+ih;
+    seg.forEach(([k,col])=>{
+      const v=r[k]||0; if(!v) return;
+      const bh=(v/max)*ih; y-=bh;
+      g+='<rect x="'+(cx-bw/2)+'" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+col+
+         '" opacity="'+(r.partial?0.55:1)+'"><title>'+esc(r.month)+' · '+k+': $'+v+'</title></rect>';
+    });
+    g+='<text x="'+cx+'" y="'+(PT+ih-(r.total/max)*ih-8)+'" fill="var(--ink)" font-size="11.5" '+
+       'font-weight="500" text-anchor="middle">$'+r.total+'</text>';
+    g+='<text x="'+cx+'" y="'+(H-24)+'" fill="var(--faint)" font-size="11" text-anchor="middle">'+
+       esc(r.month)+'</text>';
+    if(r.partial) g+='<text x="'+cx+'" y="'+(H-9)+'" fill="var(--faint)" font-size="9.5" '+
+       'text-anchor="middle">to '+esc(r.upTo.split(' ')[0])+'</text>';
+  });
+  g+='</svg>';
+  return '<div style="overflow-x:auto">'+g+'</div>';
+}
+</script>
+</body>
+</html>
