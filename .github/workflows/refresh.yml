@@ -1,0 +1,34 @@
+name: Refresh the demo
+
+# The data is invented, so this needs no secrets and touches nothing real.
+on:
+  schedule:
+    - cron: '0 6 2 * *'      # 06:00 on the 2nd, once the previous month is complete
+  workflow_dispatch:          # and a button, for when you want it now
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install cryptography
+      - name: Roll the window forward
+        run: python3 generate.py
+      - name: Encrypt and build
+        run: |
+          python3 encrypt.py demo
+          python3 assemble.py --standalone
+          python3 assemble.py
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "demo refresh"
+          git config user.email "actions@github.com"
+          git add data.enc index.html preview.html data.json
+          git diff --staged --quiet || git commit -m "Refresh demo data to $(date +'%B %Y')"
+          git push
